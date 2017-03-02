@@ -1,0 +1,782 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>iQC data</title>
+	<style>
+	* {	padding: 0; margin: 0; vertical-align: top; }
+
+	body {
+		background: url(background.png) repeat-x;
+		font: 18px/1.5em "proxima-nova", Helvetica, Arial, sans-serif;
+	}
+
+	a {	color: #069; }
+	a:hover { color: #28b; }
+
+	h2 {
+		margin-top: 15px;
+		font: normal 32px "omnes-pro", Helvetica, Arial, sans-serif;
+	}
+
+	h3 {
+		margin-left: 30px;
+		font: normal 26px "omnes-pro", Helvetica, Arial, sans-serif;
+		color: #666;
+	}
+
+	p {
+		margin-top: 10px;
+	}
+
+	button {
+		font-size: 18px;
+		padding: 1px 7px;
+	}
+
+	input {
+		font-size: 18px;
+	}
+
+	input[type=checkbox] {
+		margin: 7px;
+	}
+
+	#header {
+		position: relative;
+		width: 900px;
+		margin: auto;
+		z-index: 1;
+	}
+
+	#header h2 {
+		margin-left: 10px;
+		vertical-align: middle;
+		font-size: 42px;
+		font-weight: bold;
+		text-decoration: none;
+		color: #000;
+	}
+
+	#content {
+		width: 880px;
+		margin: 0 auto;
+		padding: 10px;
+		z-index: 1;
+	}
+
+	#footer {
+		margin-top: 25px;
+		margin-bottom: 10px;
+		text-align: center;
+		font-size: 12px;
+		color: #999;
+	}
+
+	.demo-container {
+		box-sizing: border-box;
+		width: 900px;
+		height: 500px;
+		padding: 20px 15px 15px 15px;
+		margin: 15px auto 30px auto;
+		border: 1px solid #ddd;
+		background: #fff;
+		background: linear-gradient(#f6f6f6 0, #fff 50px);
+		background: -o-linear-gradient(#f6f6f6 0, #fff 50px);
+		background: -ms-linear-gradient(#f6f6f6 0, #fff 50px);
+		background: -moz-linear-gradient(#f6f6f6 0, #fff 50px);
+		background: -webkit-linear-gradient(#f6f6f6 0, #fff 50px);
+		box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+		-o-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+		-ms-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+		-moz-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+		-webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+		z-index: 2;
+			}
+
+	.demo-placeholder {
+		width: 100%;
+		height: 100%;
+		font-size: 14px;
+		line-height: 1.2em;
+		z-index: 3;
+			}
+
+	.legend table {
+		border-spacing: 5px;
+	}
+
+	div.relative {
+	    position: relative;
+	    left: 500px;
+	}
+
+
+	table, th, td {
+		 border: 1px solid black;
+		 z-index: 3;
+	}
+</style>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="https://raw.githubusercontent.com/flot/flot/master/jquery.flot.js"></script>
+	<script src= "https://raw.githubusercontent.com/markrcote/flot-axislabels/master/jquery.flot.axislabels.js"></script>
+
+
+	<script type="text/javascript">
+//initiallizing java
+	$(function() {
+//data input
+		var d = [[969,9.9],
+[834.9,10],
+[504.3,10],
+[241.5,10],
+[528,9.7],
+[790.5,10],
+[846,10],
+[723.3,10],
+[710.4,10],
+[615.9,10],
+[763.2,10],
+[1193.7,10],
+[327.9,8.9],
+[362.4,9.6],
+[416.1,9],
+[1262.4,10],
+[719.1,10],
+[1311.3,10],
+[1059.3,8.9],
+[967.2,10],
+[1013.4,9.2],
+[816,9.7],
+[946.2,10],
+[842.4,9.9],
+[1200.9,10],
+[972.9,10],
+[677.7,10],
+[602.4,10],
+[527.4,10],
+[594.3,10],
+[373.8,10],
+[683.7,10],
+[918.6,10],
+[133.5,1],
+[606.6,10],
+[549.9,10],
+[983.4,9.3],
+[510,10],
+[1195.5,10],
+[939,10],
+[989.1,8.8],
+[823.8,10],
+[422.1,9.8],
+[1044.9,9.1],
+[1059.3,9.3],
+[782.7,10],
+[659.4,10],
+[784.5,10],
+[677.1,10],
+[799.5,10],
+[1138.8,9.8],
+[927,10],
+[645.9,10],
+[262.2,9.8],
+[700.2,10],
+[1062,10],
+[1241.1,10],
+[485.4,10],
+[784.2,10],
+[699.6,10],
+[1004.4,10],
+[808.5,10],
+[855,10],
+[733.5,10],
+[911.7,10],
+[366.9,10],
+[1058.1,10],
+[1082.4,10],
+[440.4,10],
+[525,10],
+[903.3,10],
+[525.3,10],
+[365.4,10],
+[1064.1,10],
+[938.7,10],
+[386.1,10],
+[571.8,10],
+[667.5,10],
+[575.4,10],
+[585.9,10],
+[385.2,10],
+[524.4,10],
+[116.4,10],
+[404.7,10],
+[409.2,10],
+[488.4,10],
+[964.2,10],
+[1066.2,10],
+[480.9,9.9],
+[1619.7,10],
+[1357.2,9.7],
+[1125,10],
+[1004.1,9.4],
+[168.6,10],
+[324,10],
+[335.7,10],
+[756.9,10],
+[539.4,10],
+[364.8,10],
+[804.3,10],
+[705.3,10],
+[558.3,10],
+[686.4,10],
+[490.2,10],
+[532.8,10],
+[467.7,10],
+[392.4,10],
+[429.6,10],
+[417,8.9],
+[599.4,9.5],
+[730.2,9.2],
+[791.4,10],
+[990.3,9.7],
+[890.1,10],
+[1166.1,10],
+[782.1,10],
+[870.6,10],
+[970.5,10],
+[843.9,10],
+[213,10],
+[472.5,10],
+[1101,10],
+[1287.6,10],
+[787.2,6.3],
+[486.3,10],
+[625.8,10],
+[340.5,10],
+[488.1,10],
+[415.2,10],
+[488.4,9.9],
+[455.7,10],
+[438.3,7.3],
+[957,10],
+[846.6,10],
+[443.7,10],
+[652.8,10],
+[592.5,10],
+[263.4,9.6],
+[897.3,10],
+[892.8,10],
+[530.1,10],
+[638.1,10],
+[488.4,9.9],
+[245.4,10],
+[596.4,10],
+[235.2,10],
+[342.3,10],
+[580.5,0],
+[1023.3,10],
+[640.5,8.8],
+[550.8,10],
+[600.9,10],
+[799.8,0],
+[787.5,10],
+[613.8,10],
+[687.3,10],
+[960.9,9.9],
+[986.4,10],
+[521.4,10],
+[270,10],
+[584.1,10],
+[813.9,10],
+[719.1,10],
+[572.4,10],
+[1133.4,10],
+[762.9,10],
+[537.3,10],
+[398.4,10]
+];
+//generating graph
+
+		var plot = $.plot("#placeholder", [
+			{ data: d, label: "Quality and Quantity data"},
+		],
+//setting graph options
+		{
+				series: {
+				lines: {
+					show: false
+				},
+				points: {
+					show: true
+				}
+			},
+			grid: {
+				hoverable: true,
+				clickable: true
+			},
+			xaxis: {
+				axisLabel: 'Yield (ng RNA)',
+				min: 0,
+				max: 2000,
+			},
+			yaxis: {
+				axisLabel: 'Quality (RQN)',
+				min: 0,
+				max: 11
+			},
+//set visual threshold here
+			grid: {
+				markings:[
+					{xaxis: { from: 0, to: 100}, color: "#C11B17"},
+					{yaxis: { from: 0, to: 4}, color: "#C11B17"}
+				],
+				clickable: true,
+				hoverable: true
+			}
+		});
+
+// hover settings
+		$("<div id='tooltip'></div>").css({
+			position: "absolute",
+			display: "none",
+			border: "1px solid #fdd",
+			padding: "2px",
+			"background-color": "#fee",
+			opacity: 0.80
+		}).appendTo("body");
+
+		$("#placeholder").bind("plothover", function (event, pos, item) {
+
+
+			if ($("#enableTooltip:checked").length > 0) {
+				if (item) {
+					var x = item.datapoint[0].toFixed(2),
+						y = item.datapoint[1].toFixed(2);
+//display on graph details about point
+					$("#tooltip").html("Sample No. " + parseInt(item.dataIndex + 1) + " (" + x + ", " + y + ")")
+						.css({top: item.pageY+5, left: item.pageX+5})
+						.fadeIn(200);
+				} else {
+					$("#tooltip").hide();
+				}
+			}
+		});
+
+	//display in body details about point
+		$("#placeholder").bind("plotclick", function (event, pos, item) {
+			if (item) {
+				var x = item.datapoint[0].toFixed(2),
+					y = item.datapoint[1].toFixed(2);
+				$("#clickdata").text(" Sample No. " + parseInt(item.dataIndex + 1 ) + " (" + x + ", " + y + ")");
+
+
+			}
+		});
+		//initialize variable for table
+		var quant = [969,
+834.9,
+504.3,
+241.5,
+528,
+790.5,
+846,
+723.3,
+710.4,
+615.9,
+763.2,
+1193.7,
+327.9,
+362.4,
+416.1,
+1262.4,
+719.1,
+1311.3,
+1059.3,
+967.2,
+1013.4,
+816,
+946.2,
+842.4,
+1200.9,
+972.9,
+677.7,
+602.4,
+527.4,
+594.3,
+373.8,
+683.7,
+918.6,
+133.5,
+606.6,
+549.9,
+983.4,
+510,
+1195.5,
+939,
+989.1,
+823.8,
+422.1,
+1044.9,
+1059.3,
+782.7,
+659.4,
+784.5,
+677.1,
+799.5,
+1138.8,
+927,
+645.9,
+262.2,
+700.2,
+1062,
+1241.1,
+485.4,
+784.2,
+699.6,
+1004.4,
+808.5,
+855,
+733.5,
+911.7,
+366.9,
+1058.1,
+1082.4,
+440.4,
+525,
+903.3,
+525.3,
+365.4,
+1064.1,
+938.7,
+386.1,
+571.8,
+667.5,
+575.4,
+585.9,
+385.2,
+524.4,
+116.4,
+404.7,
+409.2,
+488.4,
+964.2,
+1066.2,
+480.9,
+1619.7,
+1357.2,
+1125,
+1004.1,
+168.6,
+324,
+335.7,
+756.9,
+539.4,
+364.8,
+804.3,
+705.3,
+558.3,
+686.4,
+490.2,
+532.8,
+467.7,
+392.4,
+429.6,
+417,
+599.4,
+730.2,
+791.4,
+990.3,
+890.1,
+1166.1,
+782.1,
+870.6,
+970.5,
+843.9,
+213,
+472.5,
+1101,
+1287.6,
+787.2,
+486.3,
+625.8,
+340.5,
+488.1,
+415.2,
+488.4,
+455.7,
+438.3,
+957,
+846.6,
+443.7,
+652.8,
+592.5,
+263.4,
+897.3,
+892.8,
+530.1,
+638.1,
+488.4,
+245.4,
+596.4,
+235.2,
+342.3,
+580.5,
+1023.3,
+640.5,
+550.8,
+600.9,
+799.8,
+787.5,
+613.8,
+687.3,
+960.9,
+986.4,
+521.4,
+270,
+584.1,
+813.9,
+719.1,
+572.4,
+1133.4,
+762.9,
+537.3,
+398.4];
+var qual = [9.9,
+10,
+10,
+10,
+9.7,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+8.9,
+9.6,
+9,
+10,
+10,
+10,
+8.9,
+10,
+9.2,
+9.7,
+10,
+9.9,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+1,
+10,
+10,
+9.3,
+10,
+10,
+10,
+8.8,
+10,
+9.8,
+9.1,
+9.3,
+10,
+10,
+10,
+10,
+10,
+9.8,
+10,
+10,
+9.8,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+9.9,
+10,
+9.7,
+10,
+9.4,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+8.9,
+9.5,
+9.2,
+10,
+9.7,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+6.3,
+10,
+10,
+10,
+10,
+10,
+9.9,
+10,
+7.3,
+10,
+10,
+10,
+10,
+10,
+9.6,
+10,
+10,
+10,
+10,
+9.9,
+10,
+10,
+10,
+10,
+0,
+10,
+8.8,
+10,
+10,
+0,
+10,
+10,
+10,
+9.9,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10,
+10];
+
+
+//sourcing electrophoretogram image files
+var imagesrc = [];
+for(i=1; i<169; i++){
+	imagesrc[i-1] = "https://raw.githubusercontent.com/mattstull-ms/iQC-graph/master/16118kt_" + i + ".PNG";
+};
+//generating a table
+var content = "<table align = \"center\">";
+content += "<tr>";
+var tabhead = ["Sample No.", "Yield (ng RNA)", "Quality (RQN)"];
+//making table header
+for (i=0; i< 3; i++){
+	content += "<th>" + tabhead[i] + "</th>";
+};
+content += "</tr>";
+//filling table rows + hyperlinks are also added to quality data
+for (i=1; i <= quant.length; i++){
+	content += "<tr><td>" + i + "</td><td>" + quant[i-1] + "</td>" + "<td><a href=" + imagesrc[i-1] + ">" +
+	qual[i-1] +	"</a></td>" + "</tr>";
+};
+content += "</table>";
+$('#heretable').append(content);
+
+
+		// Add the Flot version string to the footer
+
+		$("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
+	});
+
+	</script>
+
+</head>
+<body>
+
+	<div id="header">
+		<h2>iQC Data</h2>
+	</div>
+
+
+	<div id="content">
+
+		<div class="demo-container">
+			<div id="placeholder" class="demo-placeholder">
+
+
+
+			</div>
+		</div>
+
+		<p> Hover or click a data point to get more detail.</p>
+
+		<p>
+			<span id="clickdata"></span>
+		</p>
+
+
+
+		<p><label><input id="enableTooltip" type="checkbox" checked="checked"></input>Enable hovering over data</label></p>
+
+	</div>
+<div id="heretable" align = "center">
+</div>
+
+	<div id="footer">
+		Copyright &copy; 2007 - 2014 IOLA and Ole Laursen
+	</div>
+
+</body>
+</html>
