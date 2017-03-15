@@ -1,23 +1,14 @@
 library(shiny)
 library(caret)
-library(car)
 library(rhandsontable)
 library(elasticnet)
 library(kernlab)
 library(e1071)
-library(lattice)
 library(earth)
 library(doMC)
-library(rpart)
-library(bst)
 library(evtree)
-library(nodeHarvest)
 library(RRF)
-library(party)
 library(quantregForest)
-library(extraTrees)
-library(inTrees)
-library(RWeka)
 library(xgboost)
 shinyServer(function(input,output){
   #registerDoMC(cores = 4)
@@ -171,21 +162,47 @@ shinyServer(function(input,output){
         x<-i
         insertUI(selector= "#Plot_1", 
                  where = "beforeEnd",
-                 ui=tags$div(id = paste0("plotdiv",x),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "500px"))
+                 ui=tags$div(id = paste0("plotdiv",x),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "800px"))
         )
         
       })}
       for(t in 1:ycolcnt){local({
         j<-t
+        #calculate theoretical quantile
+        q<-qqnorm(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j])
+        #Calculate influence (h)
+        X<-as.matrix(xdata)
+        H<-X%*%solve(t(X)%*%X)%*%t(X)
+        h<-diag(H)
+        #calculate components of cooks distance
+        #e=error
+        e<-predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j]
+        #s = RMSE
+        s<-eval(parse(text = paste("newmodel",j,"$results$RMSE",sep="")))
+        #p=no. independent vars
+        p<-length(xdata[1,])
+        #Cooks Distance
+        D<-e*e/(s*s*p)*(h/((1-h)*(1-h)))
+        #find values greater than 1
+        #labs<-NULL
+        #for(i in 1:length(D)){
+         # if(D[i] >=1){
+          #  append(labs,i)
+         # }
+       # }
         output[[paste("Diagnostic_",j,sep="")]]<-renderPlot({
-          par(mfrow=c(1,2))
+          par(mfrow=c(2,2))
           plot(predict(eval(parse(text = paste("newmodel",j,sep="")))),ydata[,j], xlab = "Predicted", ylab="Actual")
-          abline(0,1)
+          abline(a=0,b=1, lty = 2)
           plot(predict(eval(parse(text = paste("newmodel",j,sep="")))),predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j], xlab = "Fitted", ylab = "Residuals")
-          abline(0,0)
+          abline(a=0,b=0, lty = 2)
+          plot(q$x,(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j])/sd(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j]), xlab = "Theoretical Quantile", ylab="Standardized Residual")
+          abline(a=0,b=1, lty =2)
+          plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
         })
       })}
-      
+      #This is a test for outliers
+
       #clicking the predict button....
       
       observeEvent(input$predict_button,{
@@ -492,24 +509,44 @@ shinyServer(function(input,output){
        
        
        #Uses a for loop to iteratively generate panels with diagnostic plots for the number of dependent variables  
+       #Uses a for loop to iteratively generate panels with diagnostic plots for the number of dependent variables  
        for(i in 1:ycolcnt){local({
          x<-i
          insertUI(selector= "#Plot_1", 
                   where = "beforeEnd",
-                  ui=tags$div(id = paste0("plotdiv",x),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "500px"))
+                  ui=tags$div(id = paste0("plotdiv",x),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "800px"))
          )
          
        })}
        for(t in 1:ycolcnt){local({
          j<-t
+         #calculate theoretical quantile
+         q<-qqnorm(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j])
+         #Calculate influence (h)
+         X<-as.matrix(xdata)
+         H<-X%*%solve(t(X)%*%X)%*%t(X)
+         h<-diag(H)
+         #calculate components of cooks distance
+         #e=error
+         e<-predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j]
+         #s = RMSE
+         s<-eval(parse(text = paste("newmodel",j,"$results$RMSE",sep="")))
+         #p=no. independent vars
+         p<-length(xdata[1,])
+         #Cooks Distance
+         D<-e*e/(s*s*p)*(h/((1-h)*(1-h)))
          output[[paste("Diagnostic_",j,sep="")]]<-renderPlot({
-           par(mfrow=c(1,2))
+           par(mfrow=c(2,2))
            plot(predict(eval(parse(text = paste("newmodel",j,sep="")))),ydata[,j], xlab = "Predicted", ylab="Actual")
-           abline(0,1)
-           plot(predict(eval(parse(text = paste("newmodel",j,sep="")))),resid(eval(parse(text = paste("newmodel",j,sep="")))), xlab = "Fitted", ylab = "Residuals")
-           abline(0,0)
+           abline(a=0,b=1, lty = 2)
+           plot(predict(eval(parse(text = paste("newmodel",j,sep="")))),predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j], xlab = "Fitted", ylab = "Residuals")
+           abline(a=0,b=0, lty = 2)
+           plot(q$x,(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j])/sd(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j]), xlab = "Theoretical Quantile", ylab="Standardized Residual")
+           abline(a=0,b=1, lty =2)
+           plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
          })
        })}
+
        
        #clicking the predict button....
        
@@ -650,5 +687,4 @@ shinyServer(function(input,output){
   
   
 })
-
 
