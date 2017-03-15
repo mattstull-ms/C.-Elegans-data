@@ -22,7 +22,14 @@ shinyUI(fluidPage(
     tags$div(rHandsontableOutput("Stat_table")),
   br(),
     uiOutput("table1header"),
-    tags$div(rHandsontableOutput("table1"))
+    tags$div(rHandsontableOutput("table1")),
 
-  
-))
+    br(),
+      hr(),
+      h6("Referencences:"),
+      p(" Winston Chang, Joe Cheng, JJ Allaire, Yihui Xie and Jonathan McPherson (2017). shiny: Web Application Framework for R. R package version
+  1.0.0. https://CRAN.R-project.org/package=shiny"),
+    p("Oliver Gjoneski (2014). rflot: [R] wrapper for flot JS plotting library. R package version 0.1.5."),
+      p(" Jonathan Owen (2016). rhandsontable: Interface to the 'Handsontable.js' Library. R package version 0.3.4. https://CRAN.R-project.org/package=rhandsontable")
+    )
+)
