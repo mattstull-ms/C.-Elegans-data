@@ -76,6 +76,8 @@ shinyUI(navbarPage("QC App",
                    ),
                    tabPanel("Citations",
                             h3("References"),
+                            p("R Core Team (2016). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL
+                              https://www.R-project.org/."),
                             p("Winston Chang, Joe Cheng, JJ Allaire, Yihui Xie and Jonathan McPherson (2017). shiny: Web Application Framework for R. R package version
                               1.0.0. https://CRAN.R-project.org/package=shiny"),
                             p("Max Kuhn. Contributions from Jed Wing, Steve Weston, Andre Williams, Chris Keefer, Allan Engelhardt, Tony Cooper, Zachary Mayer, Brenton
