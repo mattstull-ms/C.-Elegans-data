@@ -162,7 +162,7 @@ shinyServer(function(input,output){
         x<-i
         insertUI(selector= "#Plot_1", 
                  where = "beforeEnd",
-                 ui=tags$div(id = paste0("plotdiv",x),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "800px"))
+                 ui=tags$div(id = paste0("plotdiv",x),hr(style = "border-color: black"),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "800px"),hr(style = "border-color: black"))
         )
         
       })}
@@ -198,7 +198,15 @@ shinyServer(function(input,output){
           abline(a=0,b=0, lty = 2)
           plot(q$x,(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j])/sd(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j]), xlab = "Theoretical Quantile", ylab="Standardized Residual")
           abline(a=0,b=1, lty =2)
-          plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
+          if(length(which(D>1))>0){
+            plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
+            abline(a=1,b=0, lty = 2)
+            text(h[which(D>1)],D[which(D>1)],which(D>1), pos = 1)
+            }
+          else{
+            plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
+          abline(a=1,b=0, lty = 2)
+          }
         })
       })}
       #This is a test for outliers
@@ -508,13 +516,13 @@ shinyServer(function(input,output){
        
        
        
-       #Uses a for loop to iteratively generate panels with diagnostic plots for the number of dependent variables  
+      
        #Uses a for loop to iteratively generate panels with diagnostic plots for the number of dependent variables  
        for(i in 1:ycolcnt){local({
          x<-i
          insertUI(selector= "#Plot_1", 
                   where = "beforeEnd",
-                  ui=tags$div(id = paste0("plotdiv",x),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "800px"))
+                  ui=tags$div(id = paste0("plotdiv",x),hr(style = "border-color: black"),tags$h5(ycolumn_names[x]), plotOutput(paste("Diagnostic_",x, sep = ""), height = "800px"),hr(style = "border-color:black"))
          )
          
        })}
@@ -543,7 +551,17 @@ shinyServer(function(input,output){
            abline(a=0,b=0, lty = 2)
            plot(q$x,(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j])/sd(predict(eval(parse(text = paste("newmodel",j,sep=""))))-ydata[,j]), xlab = "Theoretical Quantile", ylab="Standardized Residual")
            abline(a=0,b=1, lty =2)
-           plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
+           
+           #label only outliers
+           if(length(which(D>1))>0){
+             plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
+             abline(a=1,b=0, lty = 2)
+             text(h[which(D>1)],D[which(D>1)],which(D>1),pos = 1)
+           }
+           else{
+             plot(h,D, xlab = "Influence", ylab = "Cook's Distance")
+             abline(a=1,b=0, lty = 2)
+           }
          })
        })}
 
@@ -687,4 +705,7 @@ shinyServer(function(input,output){
   
   
 })
+
+
+
 
