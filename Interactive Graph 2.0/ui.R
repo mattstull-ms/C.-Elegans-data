@@ -27,6 +27,8 @@ shinyUI(fluidPage(
     br(),
       hr(),
       h6("Referencences:"),
+  p("R Core Team (2016). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL
+  https://www.R-project.org/."),
       p(" Winston Chang, Joe Cheng, JJ Allaire, Yihui Xie and Jonathan McPherson (2017). shiny: Web Application Framework for R. R package version
   1.0.0. https://CRAN.R-project.org/package=shiny"),
     p("Oliver Gjoneski (2014). rflot: [R] wrapper for flot JS plotting library. R package version 0.1.5."),
