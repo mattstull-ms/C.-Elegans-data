@@ -86,7 +86,7 @@ shinyServer(function(input, output) {
     #make a table
     tab<-cbind(xdata[,1:6], RQN)
     output$StatHeader<-renderUI(h4("Quality Statitics"))
-    rtab<-rhandsontable(data = tab, rowHeaders = FALSE, renderer = htmlwidgets::JS("safeHtmlRenderer"))
+    rtab<-rhandsontable(data = tab, readOnly = TRUE, rowHeaders = FALSE, renderer = htmlwidgets::JS("safeHtmlRenderer"))
     #color RQN below 4
       rtab<-hot_col(rtab,5, renderer = htmlwidgets::JS("function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.NumericRenderer.apply(this, arguments);
@@ -101,14 +101,14 @@ shinyServer(function(input, output) {
                                                       td.style.background = 'red';
                                                       } 
   }"))
-     rtab<-hot_col(rtab,6,type = "autocomplete")
+     rtab<-hot_col(rtab,6, readOnly = FALSE,type = "autocomplete")
      #safely turn string into a hyperlink
      rtab<-hot_col(rtab, 7,renderer = htmlwidgets::JS("safeHtmlRenderer"))
      
      #enable column sorting
      rtab<-hot_cols(rtab,columnSorting = TRUE)
     #Generate UI to enable further actions
-     output$table1header<-renderUI(list(h4("Data Table"), p("Make changes to the table and click 'Update' to see what happens to the graph"), actionButton("updateButton", label = "Update"), br()))
+     output$table1header<-renderUI(list(h4("Data Table"), p("Change the group column to get information about your experimental groups, then press 'Update'"), actionButton("updateButton", label = "Update"), br()))
      #output the table
      output$table1<-renderRHandsontable(rtab)
   })
@@ -190,7 +190,7 @@ shinyServer(function(input, output) {
     #make a table
     tab<-cbind(xdata[,1:6], RQN)
     output$StatHeader<-renderUI(h4("Quality Statitics"))
-    rtab<-rhandsontable(data = tab, rowHeaders = FALSE, renderer = htmlwidgets::JS("safeHtmlRenderer"))
+    rtab<-rhandsontable(data = tab, rowHeaders = FALSE, readOnly = TRUE, renderer = htmlwidgets::JS("safeHtmlRenderer"))
     #color RQN below 4
     rtab<-hot_col(rtab,5, renderer = htmlwidgets::JS("function (instance, td, row, col, prop, value, cellProperties) {
                                                      Handsontable.renderers.NumericRenderer.apply(this, arguments);
@@ -205,14 +205,14 @@ shinyServer(function(input, output) {
                                                      td.style.background = 'red';
                                                      } 
                                                      }"))
-     rtab<-hot_col(rtab,6,type = "autocomplete")
+     rtab<-hot_col(rtab,6, readOnly = FALSE, type = "autocomplete")
      #safely turn string into a hyperlink
      rtab<-hot_col(rtab, 7,renderer = htmlwidgets::JS("safeHtmlRenderer"))
      
      #enable column sorting
      rtab<-hot_cols(rtab,columnSorting = TRUE)
      #Generate UI to enable further actions
-     output$table1header<-renderUI(list(h4("Data Table"), p("Make changes to the table and click 'Update' to see what happens to the graph"), actionButton("updateButton", label = "Update"), br()))
+     output$table1header<-renderUI(list(h4("Data Table"), p("Change the group column to get information about your experimental groups, then press 'Update'"), actionButton("updateButton", label = "Update"), br()))
      #output the table
      output$table1<-renderRHandsontable(rtab)
      })
