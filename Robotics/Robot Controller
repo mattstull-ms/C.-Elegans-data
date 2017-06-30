@@ -1,0 +1,639 @@
+ -*- coding: utf-8 -*-
+"""
+Created on Wed May 17 10:58:05 2017
+
+@author: User
+get tips code is binary!e.g. 255 = 11111111 = all 8 tips
+                        7 = 00000111 = first 3 tips
+                        224 = 11100000 = last 3 tips etc.
+"""
+
+import sys
+import csv
+import numpy as np
+import time
+import serial
+ser = serial.Serial()
+ser.port = 'COM4'
+ser.baudrate = 38400
+ser.bytesize = serial.EIGHTBITS #number of bits per bytes
+ser.parity = serial.PARITY_NONE #set parity check: no parity
+ser.stopbits = serial.STOPBITS_ONE #number of stop bits
+ser.timeout = None           #Need blocking read
+ser.interCharTimeout = 10
+ser.xonxoff = False     #disable software flow control
+ser.rtscts = False     #disable hardware (RTS/CTS) flow control
+ser.dsrdtr = False       #disable hardware (DSR/DTR) flow control
+ser.close()
+ser.open()
+def Unlock():
+    packet = "\x02@O1\x03?\x02AO1ALO1,0\x03Q"
+    print "In:" + packet
+    ser.write(packet.encode("ascii"))
+    time.sleep(3)
+    output = ser.read(256)
+    print(">>" + output)
+    packet = "\x02@O1\x03?\x02BO1ALO2,0\x03Q"
+    print "In:" + packet
+    ser.write(packet.encode("ascii"))
+    print(">>" + output)
+    packet = "\x02@O1\x03?"
+    print "In:" + packet
+    ser.write(packet.encode("ascii"))
+    output = ser.read(256)
+    print(">>" + output)
+def Initialize():
+    packet = "\x02@O1\x03?\x02AO1ALO1,0\x03Q"
+    print "In:" + packet
+    packet = "\x02@O1\x03?"
+    print "In:" + packet
+    ser.write(packet.encode("ascii"))
+    ser.write(packet.encode("ascii"))
+    packet = "\x02@O1\x03?\x02BO1ALO2,0\x03Q"
+    print "In:" + packet
+    ser.write(packet.encode("ascii"))
+    packet = "\x02@O1\x03?"
+    print "In:" + packet
+    ser.write(packet.encode("ascii"))
+    ser.write("\x02@C5\x037".encode("ascii"))
+    ser.write("\x02@O1\x03?".encode("ascii"))
+    ser.flushInput()
+    ser.flushOutput()
+    with open("G:/Robot/Initialize.txt", "r") as a:
+        string = a.read()
+    list1 = string.split("\x02")
+    string1 =""
+    for i in list1:
+        string1 += "\x02" + i +"\n"
+    list1 = string1.split("\n")
+    for i in list1[1:-1]:
+        ser.flushInput()
+        ser.flushOutput()
+    #    if i[4:7] == "SPN":
+    #        i = ""
+        if i[4:7] == "SPS":
+            i = ""
+    #    if i[4:7] == "SHZ":
+    #        i =""
+    #        elif i[2:4] == "O1":
+    #                i = ""
+        if i[2:4] == "C6":
+        
+                i = "" 
+        elif i[2:4] == "C2":
+        
+                i = ""                
+        elif i[2:4] == "C1":
+            i = ""  
+        if i != "":
+    
+            ser.write("\x02@C5\x037".encode("ascii"))
+            ser.flushInput()
+            ser.flushOutput()
+            checksum = 0
+            for el in i[:-1]:                           ####!!!!!!!!!!!!Very Important: This adds the final bit to the end, does not work without
+                checksum ^= ord(el)
+            command = i[:-1] + chr(checksum)
+            ser.write(command.encode("ascii"))
+            print "In:" + command
+        
+            if command != "\x02@C5\x037"  and command != "\x02@O1\x03?":
+                if command[2:4] == "O1":
+                    ser.read_until(terminator = "?")
+                    output = ser.read_until(terminator = "\x03")
+                    print ">>" + output
+                else:
+                    ser.read_until(terminator = "7")
+                    output = ser.read_until(terminator = "\x03")
+                    print ">>" + output
+def DropTips():
+    with open("G:/Robot/DropTips.txt", "r") as a:
+        string = a.read()
+        list1 = string.split("\x02")
+        string1 =""
+        for i in list1:
+            string1 += "\x02" + i +"\n"
+        list1 = string1.split("\n")
+        
+    
+    for i in list1[1:-1]:
+
+        if i[2:4] == "C6":
+
+                i = "" 
+        elif i[2:4] == "C2":
+
+                i = ""  
+        elif i[2:4] == "C1":
+            i = "" 
+        if i != "":
+            ser.flushInput()
+            ser.flushOutput()
+            checksum = 0
+            for el in i[:-1]:                           ####!!!!!!!!!!!!Very Important: This adds the final bit to the end, does not work without
+                checksum ^= ord(el)
+            command = i[:-1] + chr(checksum)
+            ser.write(command.encode("ascii"))
+            print "In:" + command
+            if command != "\x02@C5\x037" and command != " AC5SSM1 J":
+                ser.read_until(terminator = "7")
+                output = ser.read_until(terminator = "\x03")
+                print ">>" + output
+def GetTips(how_many): # Takes a binary number see comment at top of page
+    with open("G:/Robot/GetTips.txt", "r") as a:
+        string = a.read()
+        list1 = string.split("\x02")
+        string1 =""
+        for i in list1:
+            string1 += "\x02" + i +"\n"
+        list1 = string1.split("\n")
+            
+    with open ("G:/Robot/Tips.txt", "r+") as tiptxt:
+       # read whats there 
+       TipTrack = tiptxt.read()
+       first_col = 8- (int(TipTrack) % 8)
+       print first_col
+       
+       second_col = how_many-first_col
+       print second_col
+       # if we get to 97 start again at 1
+       if int(TipTrack)+how_many >= 96: 
+            tiptxt.seek(0,0)
+            tiptxt.write(str(0))
+            tiptxt.truncate()
+      #  write over 8 higher for now, add soon the ability to do number less than.
+       else:
+            tiptxt.seek(0,0)
+            tiptxt.write(str(int(TipTrack) + how_many))
+            tiptxt.truncate()
+    
+    distance_between_plates = 895 
+    #This keeps track of which plate we're in to get tips    
+    with open ("G:/Robot/WorkingTipPlate1.txt","r+") as TipPlate:
+        PlateData=TipPlate.read().split(',')       
+        Platex = PlateData[0]
+        Platey = PlateData[1]
+        print Platey
+        if int(TipTrack) == 0:
+            plate_coordinates = '139,%i' %(int(Platey) + distance_between_plates)
+            
+            TipPlate.seek(0,0)
+            TipPlate.write(plate_coordinates) 
+            TipPlate.truncate()
+            
+            TipPlate.seek(0)
+            PlateData = TipPlate.read().split(',')
+            Platex = PlateData[0]
+            Platey= PlateData[1]
+            if  int(Platey)> 1859:
+                #warn "Out of tips please replace"
+                #after click ok...
+                
+                TipPlate.seek(0,0)
+                plate_coordinates = '139,69'
+                TipPlate.write(plate_coordinates)
+                TipPlate.truncate()
+                TipPlate.seek(0)
+                PlateData = TipPlate.read().split(',')
+                Platex = PlateData[0] 
+                Platey= PlateData[1]
+    
+        else:
+            print 90*(int(TipTrack)//8)
+            TipPlate.seek(0,0)
+            PlateData = TipPlate.read().split(',')
+            Platex = str(int(Platex) + 90*(int(TipTrack)//8)) 
+            Platey= PlateData[1]
+    j=1
+    #Generates the string to get the first x available tips
+    for i in list1[1:-1]:
+        
+        if i[4:7] == "PAA":
+           print Platex
+           packet = i[:7]+"%s,%s,90,2100,2100,2100,2100,2100,2100,2100,2100\x03"  %(Platex,str(int(Platey)+(90*(8-first_col))))
+           checksum = 0
+           for el in packet:
+               checksum ^= ord(el)
+           list1[j] = packet + chr(checksum)
+        elif i[4:7] == "AGT":
+           packet = i[:7]+"%i,818,210\x03"  %(2**first_col-1) ##Binary......
+           checksum = 0
+           for el in packet:
+               checksum ^= ord(el)
+           list1[j] = packet + chr(checksum)   
+        j +=1
+    list2 = list1[1:-1]
+    j=0
+    #generates the string to get the next x available tips the next row over for those that still need
+    if second_col > 0:
+        for i in list1[1:-1]:
+            
+            if i[4:7] == "PAA":
+               if (int(Platex)+90) <= 1219:
+                   packet = i[:7]+"%s,%s,90,2100,2100,2100,2100,2100,2100,2100,2100\x03"  %(str(int(Platex)+90),str(int(Platey)-(90*(8-second_col-1))))
+                   checksum = 0
+                   for el in packet:
+                       checksum ^= ord(el)
+                   list2[j]=( "%s" %(packet + chr(checksum)))
+               elif (int(Platey) + distance_between_plates)>1859 and (int(Platex)+90) > 1219:
+                   Platey = 69
+                   Platex=139
+                   packet = i[:7]+"%s,%s,90,2100,2100,2100,2100,2100,2100,2100,2100\x03"  %(Platex,str(int(Platey)-(90*(8-second_col-1))))
+                   checksum = 0
+                   for el in packet:
+                       checksum ^= ord(el)
+                   list2[j]=( "%s" %(packet + chr(checksum)))
+               else:
+                   Platex = 139
+                   Platey = int(Platey) + distance_between_plates
+                   packet = i[:7]+"%s,%s,90,2100,2100,2100,2100,2100,2100,2100,2100\x03"  %(Platex,str(int(Platey)-(90*(8-second_col-1))))
+                   checksum = 0
+                   for el in packet:
+                       checksum ^= ord(el)
+                   list2[j]=( "%s" %(packet + chr(checksum)))
+            elif i[4:7] == "AGT":
+               packet = i[:7]+"%i,818,210\x03"  %(2**how_many-2**first_col) #Binary.......
+               checksum = 0
+               for el in packet:
+                   checksum ^= ord(el)
+               list2[j]=( "%s" %(packet + chr(checksum)))   
+            else:
+                list2[j]=i
+            j+=1    
+        
+    for i in list1[1:-1]:
+        if i[2:4] == "O1":
+                i = ""
+        elif i[2:4] == "C6":
+                i = "" 
+        elif i[2:4] == "C2":
+                i = ""  
+        elif i[2:4] == "C1":
+            i = "" 
+        if i != "" and len(i)>=3:
+            if i[0] == "\x02":
+                ser.flushInput()
+                ser.flushOutput()
+                checksum = 0
+                for el in i[:-1]:                           ####!!!!!!!!!!!!Very Important: This adds the final bit to the end, does not work without
+                    checksum ^= ord(el)
+                ser.write(i[:-1].encode("ascii")+chr(checksum).encode("ascii"))
+                command = i[:-1] +chr(checksum)
+                print "In:" + command
+                if command != "\x02@C5\x037" and command != " AC5SSM1 J":
+                    ser.read_until(terminator = "7")
+                    output = ser.read_until(terminator = "\x03")
+                    print ">>" + output
+    if second_col > 0:
+        for i in list2:
+            if i[2:4] == "O1":
+                    i = ""
+            elif i[2:4] == "C6":
+                    i = "" 
+            elif i[2:4] == "C2":
+                    i = ""  
+            elif i[2:4] == "C1":
+                i = "" 
+            if i != "" and len(i)>=3:
+                if i[0] == "\x02":
+                    ser.flushInput()
+                    ser.flushOutput()
+                    checksum = 0
+                    for el in i[:-1]:                           ####!!!!!!!!!!!!Very Important: This adds the final bit to the end, does not work without
+                        checksum ^= ord(el)
+                    ser.write(i[:-1].encode("ascii")+chr(checksum).encode("ascii"))
+                    command = i[:-1] +chr(checksum)
+                    print "In:" + command
+                    if command != "\x02@C5\x037":
+                        ser.read_until(terminator = "7")
+                        output = ser.read_until(terminator = "\x03")
+                        print ">>" + output  
+def pipette(location,vol1,vol2,vol3,vol4,vol5,vol6,vol7,vol8,asp_disp,row_number,which_tips):
+    x='{0:08b}'.format(which_tips)
+    b=0
+    for i in str(x):
+        i = int(i)
+        b+=i
+    volume = [vol1,vol2,vol3,vol4,vol5,vol6,vol7,vol8]
+    volume = [float(y) for y in volume]
+    for j in range(len(volume)):
+        if int(volume[j]) == 0:
+            volume[j]=""
+    vol1,vol2,vol3,vol4,vol5,vol6,vol7,vol8 = volume[0],volume[1], volume[2],volume[3],volume[4],volume[5],volume[6],volume[7]       
+    print vol1
+    print volume[0]
+    with open("D:/Aspirate.txt", "r") as f:
+        string = f.read()
+        list1 = string.split("\n")
+        count = 2
+        j=0
+        list2=[]
+        for i in list1[:-1]:
+            count +=1
+            if count %2 == 0:
+                list2.append("\x02@C5\x037")
+                if i[4:7] == "SML" and location != "EBtrough":                  #This controls the max depth on the MET command or the liquid detection command
+                    packet = i[:7] + '635,635,635,635,635,635,635,635\x03'
+                    checksum = 0
+                    for el in packet:
+                        checksum ^= ord(el)
+                    list2.append(packet+chr(checksum))  
+                elif i[4:7] == "PAA":
+                    if location == "picoPlate":
+                        packet = i[:7] + '%i,2054,90,2100,2100,2100,2100,2100,2100,2100,2100\x03' %(4133+90*(row_number-1),2054)
+                        checksum = 0
+                        for el in packet:
+                            checksum ^= ord(el)
+                        list2.append(packet+chr(checksum))    
+                    elif location == "EBtrough":
+                        packet = i[:7] + '3517,2,90,1040,1040,1040,1040,1040,1040,1040,1040\x03' 
+                        checksum = 0
+                        for el in packet:
+                            checksum ^= ord(el)
+                        list2.append(packet+chr(checksum))
+                    elif location == "freshPlate":
+                        packet = i[:7] + '%i,134,90,2100,2100,2100,2100,2100,2100,2100,2100\x03' %(4133+90*(row_number-1))
+                        checksum = 0
+                        for el in packet:
+                            checksum ^= ord(el)
+                        list2.append(packet+chr(checksum))
+                elif i[4:7]=="MET":
+                    if asp_disp == "disp":
+                        packet ='\x02AC5PAZ600,600,600,600,600,600,600,600\x03' 
+                        checksum = 0
+                        for el in packet:
+                            checksum ^= ord(el)
+                        list2.append(packet+chr(checksum))
+                    else:
+                        packet = i[:7] + '%i,,,,8,8,8,8,8,8,8,8\x03' %(which_tips)
+                        checksum = 0
+                        for el in packet:
+                            checksum ^= ord(el)
+                        list2.append(packet+chr(checksum))
+                elif i[4:7]=="MTR":
+                    if asp_disp == "asp": 
+                        packet = i[:7]
+                        for yee in range(len(volume)-1):                 #aspirating a volume of zero is expresed as "" is what this is all about
+                            try:
+                                packet+="%s," %(str(float(volume[yee])*3.13))
+                            except ValueError:
+                                packet += ","
+                        try:
+                            packet+= "%s\x03" %(str(float(volume[7])*3.13))
+                        except ValueError:
+                            packet+="\x03"
+                        checksum = 0
+                        for el in packet:
+                            checksum ^= ord(el)
+                        list2.append(packet+chr(checksum))          
+                    elif asp_disp =="disp":
+                        packet = i[:7]
+                        for yee in range(len(volume)-1):                 #aspirating a volume of zero is expresed as , is what this is all about
+                            try:
+                                packet+="%s," %(str(-float(volume[yee])*3.13))
+                            except ValueError:
+                                packet += ","
+                        try:
+                            packet+= "%s\x03" %(str(-float(volume[7])*3.13))
+                        except ValueError:
+                            packet+="\x03"
+                        checksum = 0
+                        for el in packet:
+                            checksum ^= ord(el)
+                        list2.append(packet+chr(checksum))
+                        if location == "picoPlate":
+                            packet = "\x02AC5PAX%i\x03" %(4140+90*(row_number-1))
+                            for el in packet:
+                                checksum ^= ord(el)
+                            list2.append("\x02@C5\x037")
+                            list2.append(packet+chr(checksum))
+                        elif location == "freshPlate":
+                            packet = "\x02AC5PAX%i\x03" %(4140+90*(row_number-1))
+                            for el in packet:
+                                checksum ^= ord(el)
+                            list2.append("\x02@C5\x037")
+                            list2.append(packet+chr(checksum))
+                else:
+                    list2.append(list1[j])
+            j+=1
+    for i in list2:
+        if i[2:4] == "C1":
+            i = ""         
+#        if i[2:4] == "C5":
+#            if i[1:4] != "@C5":
+#                i = "\x02@C5\x037" + i
+#            else:
+#                i = ""
+        elif i[2:4] == "O1":
+#            if i[1:4] != "@O1":
+#                i = "\x02@O1\x03?" + i
+#            else:
+                i = ""
+        elif i[2:4] == "C6":
+#            if i[1:4] != "@C6":
+#                i = "\x02@C6\x034" + i
+#            else:
+                i = "" 
+        elif i[2:4] == "C2":
+#            if i[1:4] != "@C2":
+#                i = "\x02@C2\x030" + i
+#            else:
+                i = ""  
+        if i != "": #and i[10:13] != "PPR" and i[10:13] != "RTS" and i[10:12] != "RP" and i[10:13] != "SHZ":#and (i[10:13] == "PAA" or  i[10:13] == "MTR" or i[10:13] == "MET" or i[10:13] == "PPR" or i[10:13] == "PAZ")
+            if asp_disp == "disp":
+                if i[4:7] == "PPR":
+                    pass
+                else:
+                    ser.flushInput()
+                    ser.flushOutput()
+                    checksum = 0
+                    for el in i[:-1]:                           ####!!!!!!!!!!!!Very Important: This adds the final bit to the end, does not work without
+                        checksum ^= ord(el)
+                   
+                    ser.write(i[:-1].encode("ascii")+chr(checksum).encode("ascii"))
+                    command = i[:-1] + chr(checksum)
+                    print "In:" + command
+                    if command != "\x02@C5\x037":
+                        ser.read_until(terminator = "7")
+                        output = ser.read_until(terminator = "\x03")
+                        print ">>" + output
+                    
+            else:
+                ser.flushInput()
+                ser.flushOutput()    
+                checksum = 0                   
+                for el in i[:-1]:                           ####!!!!!!!!!!!!Very Important: This adds the final bit to the end, does not work without
+                    checksum ^= ord(el)
+                ser.write(i[:-1].encode("ascii")+chr(checksum).encode("ascii"))
+                command = i[:-1] + chr(checksum)
+                print "in:" + command
+                if command != "\x02@C5\x037":
+                    ser.read_until(terminator = "7")
+                    output = ser.read_until(terminator = "\x03")
+                    print ">>" + output
+if ser.isOpen() == True:
+    print ser.isOpen()
+    print("So you want to normalize today? Take some time to check the setup, there are some things I just can't do... yet. You should have a plate with known concentrations (with a csv saved at path/to/file) closest to you on the plate rack. You should also have an empty plate in the space farthest from you. Make sure there is EB in the trough farthest from you. Lastly, make sure there are enough clean tips in the racks on the far left. All good?")
+    input_var = input("'y' or 'n'\n")
+    if input_var != "y":
+        print("Ok take your time. I'm not going anywhere. Wake me back up when you're ready.")
+        sys.exit()
+    elif input_var == "y":
+        print("Great! I'll have this done in no time. But first, what type of normalization would you like to do?")
+        input_var = input("Type '1' if you want to add a set volume of DNA to the fresh plate, then add EB to bring it down to your desired concentration.\n Type '2' to set your desired final concentration and volume, either way, I'll take care of the math\n'1' or '2'?\n")
+        if input_var == "1":
+            volume = input("How much volume would you like to add? I can handle between 3 and 195ul for now.(Need Integer)\n")
+            if 3<int(volume)<195:
+                conc = input("What would you like the final concentration to be? (Need float):\n")
+                with open('D:/pico.csv', 'r+') as f:
+                    reader = csv.reader(f)
+                    
+                    pico = list(reader)
+                    pico = np.asmatrix(pico)
+                    pico = pico.astype(float)
+            
+                EB1 = np.multiply(pico,float(volume))
+                EB2 = np.divide(EB1,float(conc))
+                print(EB2)
+                EB = np.transpose(EB2)
+            
+                for i in range(0,len(EB[0,:])):
+                    for j in range (0,len(EB[:,0])):
+                        if EB[j,i] < 0:
+                            EB[j,i] = 0
+                EB= EB.astype('|S5')
+                EB = np.matrix.tolist(EB)
+                
+                row=[]
+                for i in range(0, len(EB)):
+                    row.append(b','.join(EB[i]))
+                for i in range(0,len(row)):
+                    row[i]=row[i].decode("utf-8")
+            
+                with open('D:/transposedfile.csv', 'w+') as w:
+                    for i in range(0, len(EB)):
+                        w.write("%s\n" % row[i])
+        
+                num_samples = input("How many samples do you have? (I need an integer)\n")
+                remainder = num_samples % 8
+                row_number = 1
+                with open('D:/transposedfile.csv',"r+") as transfile:
+                    EBVolume = csv.reader(transfile)
+                    EBVolume = list(EBVolume)
+                Initialize()
+                if num_samples//8 == 0:
+                    GetTips(2**remainder-1)  
+                else:
+                    GetTips(255)
+                while row_number <= int(num_samples)//8 and int(num_samples)//8>0 and row_number <=12:
+                    pipette(location ='EBtrough',*EBVolume[row_number],asp_disp ='asp',row_number = row_number, which_tips = 255) 
+                    pipette(location ='freshPlate',*EBVolume[row_number],asp_disp ='disp',row_number=row_number,which_tips = 255) 
+                    row_number +=1
+                if remainder != 0 and row_number <12:
+                    EBVolume[-remainder:] = 0
+                    pipette(location ='EBtrough',*EBVolume[row_number],asp_disp ='asp',row_number = row_number, which_tips = 2**remainder-1) 
+                    pipette(location ='freshPlate',*EBVolume[row_number],asp_disp ='disp',row_number=row_number,which_tips = 2**remainder-1) 
+                DropTips()
+                row_number =1
+                while row_number <=int(num_samples)//8 and int(num_samples)//8>0 and row_number <=12:
+                    GetTips(255)
+                    pipette('picoPlate',volume,volume,volume,volume,volume,volume,volume,volume,'asp',row_number,which_tips = 255)
+                    pipette('freshPlate',volume,volume,volume,volume,volume,volume,volume,volume,'disp',row_number,which_tips = 255)
+                    DropTips()
+                    row_number += 1
+                if remainder != 0 and row_number < 12:
+                    GetTips(2**remainder-1)
+                    vol = [volume,volume,volume,volume,volume,volume,volume,volume]
+                    vol[-remainder:] = 0
+                    pipette('picoPlate',*vol,asp_disp = 'asp',row_number = row_number, which_tips = 2**remainder-1)
+                    pipette('freshPlate',*vol,asp_disp = 'disp',row_number = row_number, whichtips = 2**remainder-1)
+                    DropTips() 
+                Unlock()    
+                print("All done!")    
+            else:
+                print("Can't work with that volume yet")
+                sys.exit()   
+        elif input_var == "2":
+            volume = input("End Volume (0-250ul) (int only):\n")
+            if 0<int(volume)<250:
+                conc = input("End Concentration: \n")
+                with open('D:/pico.csv', 'r+') as f:
+                    reader = csv.reader(f)
+                    pico = list(reader)   
+                    pico = np.asmatrix(pico)
+                    pico = pico.astype(float)
+                EB1 = np.multiply(float(volume),float(conc))
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    EB2 = np.true_divide(EB1,pico)
+                    EB2[EB2 == np.inf] = 0
+                    EB2 = np.nan_to_num(EB2)
+                EB2 = float(volume) - EB2
+                EB = np.transpose(EB2)
+                for i in range(0,len(EB[0,:])):
+                    for j in range (0,len(EB[:,0])):
+                        if EB[j,i] < 0:
+                            EB[j,i] = 0
+                EB= EB.astype('|S5')
+                EB = np.matrix.tolist(EB)
+                row=[]
+                for i in range(0, len(EB)):
+                    row.append(b','.join(EB[i]))
+                for i in range(0,len(row)):
+                    row[i]=row[i].decode("utf-8")
+                with open('D:/transposedfile.csv', 'w+') as w:
+                    for i in range(0, len(EB)):
+                        w.write("%s\n" % row[i])
+                input_var = input("Continue? 'y' or 'n':\n")
+                if input_var == "y":
+                    num_samples = input("How many samples do you have?\n")
+                    remainder = num_samples % 8
+                    row_number = 1
+                    with open('D:/transposedfile.csv') as transfile:
+                        EBVolume = csv.reader(transfile)
+                        EBVolume = list(EBVolume)
+    #!!!!!!!!COMMENTED FOR NOW BUT NEEDS IN FUTURE
+                    start_time = time.time()                
+                    Initialize()
+                    if num_samples // 8 == 0:
+                        GetTips(2**remainder-1)
+                    else:
+                        GetTips(255)
+
+                    while row_number <= int(num_samples)//8 and int(num_samples)//8>0 and row_number <= 12:
+                        pipette(*(['EBtrough']+EBVolume[row_number-1]),asp_disp='asp',row_number = row_number, which_tips = 255) 
+                        pipette(*(['freshPlate']+EBVolume[row_number-1]), asp_disp = 'disp',row_number = row_number, which_tips =255) 
+                        row_number +=1
+                    if remainder != 0 and row_number < 12:
+                        EBVolume[-remainder:] = 0
+                        pipette(*(['EBtrough']+EBVolume[row_number-1]),asp_disp='asp',row_number = row_number, which_tips = 2**remainder-1) 
+                        pipette(*(['freshPlate']+EBVolume[row_number-1]), asp_disp = 'disp',row_number = row_number, which_tips = 2**remainder-1)
+                    DropTips()
+                    row_number =1
+                    while row_number <= int(num_samples)//8 and row_number<=12:
+                        GetTips(255)
+                        DNAVolume = [volume-float(x) for x in EBVolume[row_number -1]]
+                        pipette(*(['picoPlate']+DNAVolume),asp_disp ='asp',row_number = row_number, which_tips = 255)
+                        pipette(*(['freshPlate']+DNAVolume),asp_disp = 'disp',row_number = row_number, which_tips = 255)
+                        DropTips()
+                        row_number += 1
+                    if remainder != 0 and row_number <12:
+                        GetTips(2**remainder -1)
+                        DNAVolume = [volume-float(x) for x in EBVolume[row_number -1]]
+                        DNAVolume[-remainder:] = 0
+                        pipette(*(['picoPlate']+DNAVolume),asp_disp ='asp',row_number = row_number,which_tips = 2**remainder -1)
+                        pipette(*(['freshPlate']+DNAVolume),asp_disp = 'disp',row_number = row_number, which_tips = 2**remainder -1)
+                        DropTips()
+                    Unlock()
+                    end_time = time.time()
+                    total_time = end_time - start_time
+                    print "The normalization of " + str(num_samples) + "took me " + str(total_time) + " seconds."
+                    ser.close()
+                else:
+                    print("Maybe try again with different parameters")
+                    sys.exit()     
+            else:
+                print("Final volume too high")
+                sys.exit()
+        else:
+            print("Maybe something got lost in translation you did not select either 1 or 2. Try again")
+            sys.exit()
